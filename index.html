@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Manajemen Keuangan</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome untuk Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Animasi Transisi */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        .slide-up { animation: slideUp 0.3s ease-out; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Custom Scrollbar untuk History Box */
+        .history-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .history-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .history-scroll::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-gray-800 h-screen overflow-hidden flex flex-col">
+
+    <!-- ================= LOGIN SECTION ================= -->
+    <div id="login-section" class="fixed inset-0 z-50 bg-white flex flex-col items-center justify-center p-6">
+        <div class="w-full max-w-sm text-center">
+            <div class="mb-8">
+                <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-200 mb-4">
+                    <i class="fa-solid fa-wallet text-white text-2xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900">Selamat Datang</h1>
+                <p class="text-gray-500 text-sm mt-1">Masukkan PIN untuk mengakses dompet.</p>
+            </div>
+
+            <!-- PIN Display -->
+            <div class="flex justify-center gap-3 mb-8">
+                <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-300 transition-all duration-200"></div>
+                <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-300 transition-all duration-200"></div>
+                <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-300 transition-all duration-200"></div>
+                <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-300 transition-all duration-200"></div>
+                <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-300 transition-all duration-200"></div>
+                <div class="pin-dot w-4 h-4 rounded-full border-2 border-gray-300 transition-all duration-200"></div>
+            </div>
+            
+            <p id="pin-error" class="text-red-500 text-sm h-5 mb-4 opacity-0 transition-opacity">PIN Salah, silakan coba lagi.</p>
+
+            <!-- Keypad -->
+            <div class="grid grid-cols-3 gap-4 max-w-[280px] mx-auto">
+                <button onclick="enterDigit(1)" class="h-16 rounded-full text-xl font-semibold bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition">1</button>
+                <button onclick="enterDigit(2)" class="h-16 rounded-full text-xl font-semibold bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition">2</button>
+                <button onclick="enterDigit(3)" class="h-16 rounded-full text-xl font-semibold bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition">3</button>
+                <button onclick="enterDigit(4)" class="h-16 rounded-full text-xl font-semibold bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition">4</button>
+                <button onclick="enterDigit(5)" class="h-16 rounded-full text-xl font-semibold bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition">5</button>
+                <button onclick="enterDigit(6)" class="h-16 rounded-full text-xl font-semibold bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition">6</button>
+                <button onclick="enterDigit(7)" class="h-16 rounded-full text-xl font-semibold bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition">7</button>
+                <button onclick="enterDigit(8)" class="h-16 rounded-full text-xl font-semibold bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition">8</button>
+                <button onclick="enterDigit(9)" class="h-16 rounded-full text-xl font-semibold bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition">9</button>
+                <button class="h-16 text-xl font-semibold"></button>
+                <button onclick="enterDigit(0)" class="h-16 rounded-full text-xl font-semibold bg-gray-50 hover:bg-gray-100 active:bg-gray-200 transition">0</button>
+                <button onclick="deleteDigit()" class="h-16 rounded-full text-xl font-semibold text-gray-500 hover:bg-gray-100 active:bg-gray-200 transition flex items-center justify-center">
+                    <i class="fa-solid fa-delete-left"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= DASHBOARD SECTION ================= -->
+    <div id="dashboard-section" class="hidden flex-col h-full max-w-md mx-auto w-full bg-gray-50 shadow-2xl relative fade-in">
+        
+        <!-- Header -->
+        <header class="bg-white px-6 pt-8 pb-4 flex justify-between items-start sticky top-0 z-10 border-b border-gray-100">
+            <div>
+                <h2 class="text-blue-600 font-bold text-lg tracking-wide">MY WALLET</h2>
+                <p class="text-gray-400 text-xs mt-0.5">Dashboard Keuangan</p>
+            </div>
+            <div class="text-right">
+                <p id="current-day" class="text-gray-900 font-semibold text-sm">Senin</p>
+                <p id="current-date" class="text-gray-500 text-xs">1 Januari 2024</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto no-scrollbar px-6 pb-24">
+            
+            <!-- Wallet Card -->
+            <div class="mt-6 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl p-6 text-white shadow-xl shadow-blue-200 relative overflow-hidden transition-all duration-300">
+                <!-- Background Deco -->
+                <div class="absolute -top-6 -right-6 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+                <div class="absolute bottom-0 left-0 w-40 h-40 bg-black opacity-10 rounded-full blur-3xl"></div>
+
+                <div class="relative z-10">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-blue-100 text-xs font-medium uppercase tracking-wider">Saldo Dompet</span>
+                        <button onclick="toggleBalance()" class="text-blue-100 hover:text-white transition focus:outline-none p-1">
+                            <i id="eye-icon" class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                    
+                    <h1 id="wallet-balance" class="text-3xl font-bold tracking-tight mb-6">Rp 0</h1>
+                    
+                    <div class="flex items-end justify-between">
+                        <div>
+                            <p class="text-blue-200 text-[10px] uppercase font-semibold mb-0.5">Tabungan</p>
+                            <p id="savings-balance" class="font-semibold text-base">Rp 0</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-blue-200 text-[10px] uppercase font-semibold mb-0.5">Total Aset</p>
+                            <p id="total-assets" class="font-bold text-sm text-white">Rp 0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction Actions -->
+            <div class="grid grid-cols-2 gap-3 mt-6">
+                <button onclick="openModal('in')" class="flex items-center justify-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:bg-green-50 active:scale-95 transition">
+                    <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-arrow-down"></i>
+                    </div>
+                    <span class="text-gray-700 font-semibold text-sm">Masuk</span>
+                </button>
+                <button onclick="openModal('out')" class="flex items-center justify-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:bg-red-50 active:scale-95 transition">
+                    <div class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-arrow-up"></i>
+                    </div>
+                    <span class="text-gray-700 font-semibold text-sm">Keluar</span>
+                </button>
+            </div>
+
+            <!-- Savings Input Button -->
+            <button onclick="openModal('save')" class="w-full mt-3 flex items-center justify-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:bg-indigo-50 active:scale-95 transition">
+                <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-piggy-bank"></i>
+                </div>
+                <div class="text-left">
+                    <span class="text-gray-700 font-semibold text-sm block">Tabung Uang</span>
+                    <span class="text-gray-400 text-xs block">Pindahkan dari dompet ke tabungan</span>
+                </div>
+            </button>
+
+            <!-- Recent History (Limited Box) -->
+            <div class="mt-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-800 text-lg">Transaksi Terakhir</h3>
+                    <button onclick="showFullHistory()" class="text-blue-600 text-xs font-semibold hover:underline">Lihat Semua</button>
+                </div>
+                
+                <!-- Box Wrapper with Scroll -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-2">
+                    <div id="dashboard-history-list" class="history-scroll space-y-2 overflow-y-auto" style="max-height: 280px;">
+                        <!-- JS populated -->
+                        <div class="text-center py-8 text-gray-400 text-sm">Belum ada transaksi</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ================= FULL HISTORY SECTION ================= -->
+    <div id="history-section" class="hidden flex-col h-full max-w-md mx-auto w-full bg-white shadow-2xl relative fade-in">
+        <header class="bg-white px-6 pt-8 pb-4 border-b border-gray-100 sticky top-0 z-10 flex items-center gap-4">
+            <button onclick="showDashboard()" class="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition">
+                <i class="fa-solid fa-arrow-left text-gray-700"></i>
+            </button>
+            <h2 class="text-gray-900 font-bold text-lg">Riwayat Transaksi</h2>
+        </header>
+        
+        <main class="flex-1 overflow-y-auto px-6 py-4 pb-24" id="full-history-container">
+            <!-- JS Populated Grouped List -->
+        </main>
+    </div>
+
+    <!-- ================= MODAL FORM ================= -->
+    <div id="transaction-modal" class="fixed inset-0 z-[60] hidden bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center transition-opacity opacity-0">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 transform translate-y-full transition-transform duration-300" id="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modal-title" class="text-xl font-bold text-gray-800">Input Transaksi</h3>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="transaction-form" onsubmit="submitTransaction(event)">
+                <input type="hidden" id="trans-type">
+                
+                <div class="mb-5">
+                    <label class="block text-gray-500 text-xs font-semibold mb-2 uppercase">Nominal (Rp)</label>
+                    <input type="text" id="trans-amount" required inputmode="numeric" oninput="formatInputCurrency(this)" class="w-full text-3xl font-bold text-gray-800 border-b-2 border-gray-200 focus:border-blue-500 outline-none py-2 placeholder-gray-300 bg-transparent font-mono" placeholder="0">
+                </div>
+
+                <div class="mb-8">
+                    <label class="block text-gray-500 text-xs font-semibold mb-2 uppercase">Keterangan</label>
+                    <input type="text" id="trans-desc" required class="w-full text-base text-gray-700 border-b-2 border-gray-200 focus:border-blue-500 outline-none py-2 placeholder-gray-300 bg-transparent" placeholder="Tulis keterangan...">
+                </div>
+
+                <button type="submit" id="modal-submit-btn" class="w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:shadow-xl transition transform active:scale-[0.98]">
+                    Simpan
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI ---
+        const PIN_SECRET = "501943";
+        let currentPin = "";
+        
+        // --- STATE MANAJEMEN ---
+        let balance = 0;
+        let savings = 0;
+        let transactions = [];
+        let isBalanceHidden = false;
+
+        // --- INIT ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            updateDate();
+            renderDashboard();
+        });
+
+        // ================= HELPER FORMATTING =================
+        function formatRupiah(amount) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+        }
+
+        function formatInputCurrency(input) {
+            // Hapus karakter non-digit
+            let value = input.value.replace(/\D/g, '');
+            // Tambahkan titik setiap 3 digit
+            value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            input.value = value;
+        }
+
+        function parseInputCurrency(value) {
+            return parseInt(value.replace(/\./g, '') || '0');
+        }
+
+        // ================= NAVIGATION =================
+        function showDashboard() {
+            document.getElementById('history-section').classList.add('hidden');
+            document.getElementById('history-section').classList.remove('flex');
+            document.getElementById('dashboard-section').classList.remove('hidden');
+            document.getElementById('dashboard-section').classList.add('flex');
+            renderDashboard(); // Re-render to update changes
+        }
+
+        function showFullHistory() {
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('dashboard-section').classList.remove('flex');
+            document.getElementById('history-section').classList.remove('hidden');
+            document.getElementById('history-section').classList.add('flex');
+            renderFullHistory();
+        }
+
+        // ================= LOGIN LOGIC =================
+        function enterDigit(digit) {
+            if (currentPin.length < 6) {
+                currentPin += digit;
+                updatePinUI();
+                if (currentPin.length === 6) setTimeout(checkPin, 300);
+            }
+        }
+        function deleteDigit() {
+            currentPin = currentPin.slice(0, -1);
+            updatePinUI();
+            document.getElementById('pin-error').classList.add('opacity-0');
+        }
+        function updatePinUI() {
+            document.querySelectorAll('.pin-dot').forEach((dot, index) => {
+                dot.classList.toggle('bg-blue-600', index < currentPin.length);
+                dot.classList.toggle('border-blue-600', index < currentPin.length);
+            });
+        }
+        function checkPin() {
+            if (currentPin === PIN_SECRET) {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('dashboard-section').classList.remove('hidden');
+                document.getElementById('dashboard-section').classList.add('flex');
+            } else {
+                document.getElementById('pin-error').classList.remove('opacity-0');
+                currentPin = "";
+                updatePinUI();
+            }
+        }
+
+        // ================= DASHBOARD & LOGIC =================
+        function updateDate() {
+            const now = new Date();
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
+            document.getElementById('current-day').innerText = days[now.getDay()];
+            document.getElementById('current-date').innerText = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+        }
+
+        function toggleBalance() {
+            isBalanceHidden = !isBalanceHidden;
+            const eyeIcon = document.getElementById('eye-icon');
+            eyeIcon.className = isBalanceHidden ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+            renderBalance();
+        }
+
+        function renderBalance() {
+            const walletEl = document.getElementById('wallet-balance');
+            const savingsEl = document.getElementById('savings-balance');
+            const assetEl = document.getElementById('total-assets');
+
+            if (isBalanceHidden) {
+                walletEl.innerText = "Rp •••••••";
+                savingsEl.innerText = "Rp •••••";
+                assetEl.innerText = "Rp •••••••";
+            } else {
+                walletEl.innerText = formatRupiah(balance);
+                savingsEl.innerText = formatRupiah(savings);
+                assetEl.innerText = formatRupiah(balance + savings);
+            }
+        }
+
+        // --- DASHBOARD HISTORY (MAX 20) ---
+        function renderDashboardHistory() {
+            const listEl = document.getElementById('dashboard-history-list');
+            listEl.innerHTML = "";
+            
+            if (transactions.length === 0) {
+                listEl.innerHTML = '<div class="text-center py-8 text-gray-400 text-sm">Belum ada transaksi</div>';
+                return;
+            }
+
+            // Ambil 20 transaksi terakhir
+            const recent = transactions.slice().reverse().slice(0, 20);
+
+            recent.forEach(t => {
+                const el = createTransactionItem(t);
+                listEl.appendChild(el);
+            });
+        }
+
+        function createTransactionItem(t) {
+            // Styling based on type
+            let colorClass, bgClass, iconClass, sign;
+            
+            if (t.type === 'in') {
+                colorClass = 'text-green-600';
+                bgClass = 'bg-green-100';
+                iconClass = 'fa-arrow-down';
+                sign = '+';
+            } else if (t.type === 'out') {
+                colorClass = 'text-red-600';
+                bgClass = 'bg-red-100';
+                iconClass = 'fa-arrow-up';
+                sign = '-';
+            } else if (t.type === 'save') {
+                colorClass = 'text-indigo-600';
+                bgClass = 'bg-indigo-100';
+                iconClass = 'fa-piggy-bank';
+                sign = ''; // Tidak pakai +/- karena ini transfer
+            }
+
+            const div = document.createElement('div');
+            div.className = "bg-gray-50 p-3 rounded-xl flex justify-between items-center hover:bg-gray-100 transition";
+            div.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full ${bgClass} ${colorClass} flex items-center justify-center shrink-0 text-sm">
+                        <i class="fa-solid ${iconClass}"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gray-800 text-sm capitalize truncate max-w-[140px]">${t.desc}</h4>
+                        <div class="flex gap-2 text-xs text-gray-400">
+                            <span>${t.dateShort}</span>
+                            <span>•</span>
+                            <span>${t.time}</span>
+                        </div>
+                    </div>
+                </div>
+                <span class="font-bold text-sm ${colorClass}">${sign} ${formatRupiah(t.amount)}</span>
+            `;
+            return div;
+        }
+
+        function renderDashboard() {
+            renderBalance();
+            renderDashboardHistory();
+        }
+
+        // --- FULL HISTORY GROUPED BY DATE ---
+        function renderFullHistory() {
+            const container = document.getElementById('full-history-container');
+            container.innerHTML = "";
+
+            if (transactions.length === 0) {
+                container.innerHTML = '<div class="text-center mt-20 text-gray-400">Belum ada riwayat</div>';
+                return;
+            }
+
+            // Group by Date (YYYY-MM-DD for sorting)
+            const grouped = {};
+            // Reverse order for full history
+            [...transactions].reverse().forEach(t => {
+                if (!grouped[t.dateRaw]) grouped[t.dateRaw] = [];
+                grouped[t.dateRaw].push(t);
+            });
+
+            Object.keys(grouped).forEach(dateKey => {
+                // Header Tanggal
+                const groupDate = new Date(dateKey);
+                const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+                const dateLabel = groupDate.toLocaleDateString('id-ID', options);
+
+                const section = document.createElement('div');
+                section.className = "mb-6 slide-up";
+                section.innerHTML = `<h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 ml-1 sticky top-0 bg-white py-2 z-10">${dateLabel}</h3>`;
+                
+                const list = document.createElement('div');
+                list.className = "space-y-3";
+                
+                grouped[dateKey].forEach(t => {
+                    list.appendChild(createTransactionItem(t));
+                });
+                
+                section.appendChild(list);
+                container.appendChild(section);
+            });
+        }
+
+
+        // ================= MODAL & SUBMIT =================
+        const modal = document.getElementById('transaction-modal');
+        const modalContent = document.getElementById('modal-content');
+        const submitBtn = document.getElementById('modal-submit-btn');
+        const titleEl = document.getElementById('modal-title');
+        const typeInput = document.getElementById('trans-type');
+
+        function openModal(type) {
+            typeInput.value = type;
+            document.getElementById('trans-amount').value = '';
+            document.getElementById('trans-desc').value = '';
+
+            const btnClasses = "w-full py-4 rounded-xl text-white font-bold text-lg shadow-lg hover:shadow-xl transition transform active:scale-[0.98]";
+
+            if (type === 'in') {
+                titleEl.innerText = "Pemasukan";
+                submitBtn.innerText = "Simpan Pemasukan";
+                submitBtn.className = `${btnClasses} bg-green-500 hover:bg-green-600`;
+            } else if (type === 'out') {
+                titleEl.innerText = "Pengeluaran";
+                submitBtn.innerText = "Simpan Pengeluaran";
+                submitBtn.className = `${btnClasses} bg-red-500 hover:bg-red-600`;
+            } else if (type === 'save') {
+                titleEl.innerText = "Tabung Uang";
+                document.getElementById('trans-desc').value = "Setor Tabungan"; // Default desc
+                submitBtn.innerText = "Konfirmasi Tabungan";
+                submitBtn.className = `${btnClasses} bg-indigo-500 hover:bg-indigo-600`;
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('translate-y-full');
+            }, 10);
+            
+            // Auto focus input
+            setTimeout(() => document.getElementById('trans-amount').focus(), 300);
+        }
+
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('translate-y-full');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function submitTransaction(e) {
+            e.preventDefault();
+            
+            const type = typeInput.value;
+            const amount = parseInputCurrency(document.getElementById('trans-amount').value);
+            const desc = document.getElementById('trans-desc').value;
+
+            if (!amount || amount <= 0) {
+                alert("Nominal tidak valid");
+                return;
+            }
+
+            // Logic Saldo
+            if (type === 'in') {
+                balance += amount;
+            } else if (type === 'out') {
+                if (amount > balance) { alert("Saldo Dompet tidak cukup!"); return; }
+                balance -= amount;
+            } else if (type === 'save') {
+                if (amount > balance) { alert("Saldo Dompet tidak cukup untuk ditabung!"); return; }
+                balance -= amount;
+                savings += amount;
+            }
+
+            // Create Data Object
+            const now = new Date();
+            const newTrans = {
+                id: Date.now(),
+                type,
+                amount,
+                desc,
+                dateRaw: now.toISOString().split('T')[0], // For grouping
+                dateShort: now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
+                time: now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            transactions.push(newTrans);
+            
+            saveData();
+            renderDashboard();
+            closeModal();
+        }
+
+        // ================= STORAGE =================
+        function saveData() {
+            localStorage.setItem('mm_balance', balance);
+            localStorage.setItem('mm_savings', savings);
+            localStorage.setItem('mm_transactions', JSON.stringify(transactions));
+        }
+
+        function loadData() {
+            const sBal = localStorage.getItem('mm_balance');
+            const sSav = localStorage.getItem('mm_savings');
+            const sTrx = localStorage.getItem('mm_transactions');
+
+            if (sBal) balance = parseFloat(sBal);
+            if (sSav) savings = parseFloat(sSav);
+            if (sTrx) transactions = JSON.parse(sTrx);
+        }
+    </script>
+</body>
+</html>
